@@ -31,6 +31,7 @@ namespace HDRDisplayCalibrate.Pages
         readonly CheckBox _two, _cms;
         readonly TextBox _nits = Ui.Box("100", 80);
         readonly StackPanel _controls = new();
+        readonly TextBlock _levelsHint = Ui.Caption("");
         readonly StackPanel _status = new();
         readonly StackPanel _results = new();
         readonly List<UIElement> _reportCards = new();
@@ -49,7 +50,7 @@ namespace HDRDisplayCalibrate.Pages
                 T("Connect the PC to the TV with HDMI and set Windows to Extend these displays. In Display & sensor choose the TV as the display and check that the probe is found."),
                 T("On the TV choose the PC input and the most accurate picture mode (Cinema, Expert / ISF, Filmmaker); switch off every processing (dynamic contrast, vivid colours, sharpness, energy saving, light sensor)."),
                 T("Windows HDR must be off for the TV: this is the SDR calibration."),
-                T("Switch the TV on at least 30 minutes before measuring; the room should be dark.")));
+                T("Switch the TV on at least 30 minutes before measuring. With the probe in contact soft light is enough, with no direct light on the screen; with the tripod the room must be dark.")));
             Body.Children.Add(Ui.Card(Ui.H2(T("Check")), _status));
 
             // ---- 1. settings
@@ -84,7 +85,7 @@ namespace HDRDisplayCalibrate.Pages
                 Ui.Field(T("TV"), _model, tip: T("LG OLED and LG LCD / LED fill in the controls of the LG picture menu. Other TV (generic) works with any brand.")),
                 Ui.Field(T("Controls in the TV menu"), _controls, tip: T("The white balance and colour settings of the TV picture menu. The program suggests values only for the controls ticked here.")),
                 Ui.Field(T("Panel"), _panel, tip: T("OLED or LCD / LED. OLED and sets with local dimming are measured with a small window (10 %).")),
-                Ui.Field(T("Signal levels"), _levels, tip: T("Video levels 16–235: set the TV black level to Low / Limited. PC levels 0–255: set it to High / Full. They must match, otherwise black and white are wrong.")),
+                Ui.Field(T("Signal levels"), Ui.Stack(_levels, _levelsHint), tip: T("Video levels 16–235: set the TV black level to Low / Limited. PC levels 0–255: set it to High / Full. They must match, otherwise black and white are wrong.")),
                 Ui.Field(T("Measurement window"), _window, T("share of the screen"), tip: T("Size of the measured patch. 10 % for OLED and local dimming (the TV does not dim it); 18–25 % or full screen for other LCDs.")),
                 Ui.Field(T("Target gamma"), _curve, tip: T("BT.1886 or 2.4 for a dark room; 2.2 for a lit room.")),
                 Ui.Field(T("Target white"), Ui.Row(_nits, Ui.Text("cd/m²")), T("about 100 in a dark room"), tip: T("Luminance of 100 % white you will set with OLED light / backlight in the next step.")),
@@ -107,7 +108,11 @@ namespace HDRDisplayCalibrate.Pages
 
             // ---- next steps
             Body.Children.Add(Ui.Card(Ui.H2(T("Next steps (next version)")),
-                Ui.Text(T("4 · OLED light / backlight to the target white   ·   5 · 2-point white balance   ·   6 · Multi-point white balance   ·   7 · Colours (CMS)   ·   8 · Final check and report")),
+                Ui.Text(T("4 · OLED light / backlight to the target white")),
+                Ui.Text(T("5 · 2-point white balance")),
+                Ui.Text(T("6 · Multi-point white balance")),
+                Ui.Text(T("7 · Colours (CMS)")),
+                Ui.Text(T("8 · Final check and report")),
                 Ui.Caption(T("For each control the program will tell you the value to set in the TV menu, then measure again."))));
 
             _loading = false;
@@ -175,9 +180,11 @@ namespace HDRDisplayCalibrate.Pages
                 _status.Children.Add(Ui.Row(Ui.Btn(T("Turn HDR off"), async () => { Displays.SetHdr(d, false); await Task.Delay(6000); St.RefreshDisplays(); OnShow(); }, false, "")));
             }
             else if (d != null) _status.Children.Add(Line("✓ " + T("Windows HDR is off (SDR)."), Brushes.White));
-            _status.Children.Add(Line(St.Setup.VideoRange
-                ? "ⓘ " + T("Video levels 16–235: set the TV black level to Low / Limited.")
-                : "ⓘ " + T("PC levels 0–255: set the TV black level to High / Full."), Ui.Muted));
+            string levels = St.Setup.VideoRange
+                ? T("Video levels 16–235: set the TV black level to Low / Limited.")
+                : T("PC levels 0–255: set the TV black level to High / Full.");
+            _status.Children.Add(Line("ⓘ " + levels, Ui.Muted));
+            _levelsHint.Text = levels;              // the same advice right under the choice, where it is made
         }
 
         void ToggleAim()

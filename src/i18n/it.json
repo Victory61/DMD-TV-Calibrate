@@ -579,5 +579,11 @@
  "e9d5b448": "Regolazioni nel menu del TV",
  "2a98b655": "Le regolazioni del bilanciamento del bianco e del colore nel menu immagine del TV. Il programma suggerisce valori solo per quelle spuntate qui.",
  "37ae06e7": "Metti la sonda sulla croce arancione. Poi premi Esc o fai clic per chiudere questa schermata.",
- "fe26355d": "Lo schermo scelto ({0}) è quello su cui è aperto questo programma: i riquadri coprirebbero questa finestra.\n\nCollega il TV in HDMI, imposta Windows su «Estendi questi schermi» e scegli il TV in «Schermo e sonda».\n\nContinuare comunque? Premi Esc per chiudere i riquadri."
+ "fe26355d": "Lo schermo scelto ({0}) è quello su cui è aperto questo programma: i riquadri coprirebbero questa finestra.\n\nCollega il TV in HDMI, imposta Windows su «Estendi questi schermi» e scegli il TV in «Schermo e sonda».\n\nContinuare comunque? Premi Esc per chiudere i riquadri.",
+ "98690d0a": "Accendi il TV almeno 30 minuti prima di misurare. Con la sonda a contatto basta una luce soffusa, senza luce diretta sullo schermo; con il treppiede la stanza deve essere buia.",
+ "7460a7d3": "4 · Luce OLED / retroilluminazione al bianco obiettivo",
+ "cd0ebd10": "5 · Bilanciamento del bianco a 2 punti",
+ "4da3a3b0": "6 · Bilanciamento del bianco multipunto",
+ "feaabc6e": "7 · Colori (CMS)",
+ "3062a3bf": "8 · Verifica finale e report"
 }
