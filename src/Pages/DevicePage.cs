@@ -1,6 +1,7 @@
 // HDRDisplayCalibrate — SDR/HDR display calibration for Windows.
 // Copyright 2026 Andrii Orlov (DeadSue). Licensed under the Apache License, Version 2.0.
-// Modified 2026 by DMD61 (Victory61): the bin folder is shown read-only (no Apply button) when ArgyllCMS is bundled with the app.
+// Modified 2026 by DMD61 (Victory61): the bin folder is shown read-only (no Apply button) when ArgyllCMS is bundled with the app;
+// for DMD TV Calibrate the monitor-only rows (ACM, SDR white in HDR, DDC/CI, ICC / MHC2 profiles) were removed.
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -49,7 +50,7 @@ namespace HDRDisplayCalibrate.Pages
             Body.Children.Add(Ui.Card(Ui.Field(S.Lang == "en" ? "Language" : S.T("Language", "Мова") + " · Language", lang,
                 tip: S.T("Interface language. The window reloads in the new language; a running measurement is cancelled.", "Мова інтерфейсу. Вікно перезавантажиться новою мовою; поточний замір буде скасовано."))));
             System.Windows.Automation.AutomationProperties.SetName(_displays, S.T("Display", "Дисплей"));
-            Ui.Tip(_displays, S.T("The screen to calibrate. Profiles, patches and DDC/CI all go to this display.", "Екран, який калібруємо. Профілі, патчі й DDC/CI стосуються саме цього дисплея."));
+            Ui.Tip(_displays, S.T("The screen to calibrate: choose the TV connected with HDMI. The test patches are shown on this display.", "The screen to calibrate: choose the TV connected with HDMI. The test patches are shown on this display."));
             Body.Children.Add(Ui.Card(Ui.H2(S.T("Display", "Дисплей")),
                 Ui.Row(_displays, Ui.Btn(S.T("Identify", "Показати номери"), Identify, false, "", tip: S.T("Shows which physical screen this is.", "Показує, який це фізичний екран.")), Ui.Btn(S.T("Refresh", "Оновити"), () => { St.RefreshDisplays(); OnShow(); }, false, "", tip: S.T("Looks for displays and colorimeters again, e.g. after plugging in the sensor or switching HDR.", "Заново шукає дисплеї та колориметри, напр. після підключення датчика чи перемикання HDR."))),
                 _info));
@@ -95,26 +96,15 @@ namespace HDRDisplayCalibrate.Pages
             _info.Children.Clear();
             var d = St.Display; if (d == null) return;
             Displays.RefreshColor(d);
-            string ddc;
-            try { using var x = Ddc.Open(d); var b = x?.Get(Ddc.Brightness); ddc = b == null ? S.T("no", "ні") : S.F("yes · brightness {0}/{1}", "так · яскравість {0}/{1}", b.Value.cur, b.Value.max); }
-            catch { ddc = "?"; }
             _info.Children.Add(Ui.Table(new[] { "", "" }, new[]
             {
                 new[] { S.T("Windows device", "Пристрій Windows"), d.GdiName },
                 new[] { S.T("Argyll display", "Дисплей Argyll"), d.ArgyllNumber?.ToString() ?? "—" },
                 new[] { "HDR", d.HdrSupported ? (d.HdrOn ? S.T("on", "увімкнено") : S.T("supported, off", "підтримується, вимкнено")) : S.T("not supported", "не підтримується") },
-                new[] { S.T("Auto colour management (ACM)", "Автокерування кольором (ACM)"), d.WideSupported ? (d.AcmOn ? S.T("on", "увімкнено") : S.T("off", "вимкнено")) : "—" },
-                new[] { S.T("SDR white in HDR", "Білий SDR у HDR"), d.HdrOn ? $"{d.SdrWhiteNits:F0} cd/m²" : "—" },
-                new[] { "DDC/CI", ddc },
-                new[] { S.T("SDR profile", "Профіль SDR"), ColorProfiles.Default(d, false) ?? "—" },
-                new[] { S.T("HDR profile", "Профіль HDR"), ColorProfiles.Default(d, true) ?? "—" },
             }, new double[] { 230, 600 }));
             if (d.HdrSupported)
                 _info.Children.Add(Ui.Row(Ui.Btn(d.HdrOn ? S.T("Turn HDR off", "Вимкнути HDR") : S.T("Turn HDR on", "Увімкнути HDR"),
                     async () => { Displays.SetHdr(d, !d.HdrOn); await Task.Delay(6000); St.RefreshDisplays(); OnShow(); }, false, "", tip: S.T("Switches Windows HDR for this display. The monitor may show its own message for a few seconds.", "Перемикає Windows HDR для цього дисплея. Монітор може кілька секунд показувати своє повідомлення."))));
-            if (d.AcmOn && !d.HdrOn)
-                _info.Children.Add(new TextBlock { Text = S.T("⚠ ACM is on: in SDR Windows then uses the HDR (advanced colour) profile instead of the ICC calibration. Turn it off in Settings → Display → Color profile for SDR calibration.",
-                                                              "⚠ ACM увімкнено: у SDR Windows тоді бере HDR-профіль замість ICC-калібрування. Для SDR-калібрування вимкніть його в Параметри → Дисплей → Колірний профіль."), Foreground = Ui.Warm, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0) });
         }
 
         void Save()

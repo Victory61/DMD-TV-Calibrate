@@ -28,3 +28,8 @@ Changes made by DMD61 to the original HDRDisplayCalibrate code:
   and documents folders (DMDTVCalibrate), so it can be installed side by side with HDRDisplayCalibrate.
 - The monitor calibration pages (SDR and HDR calibration, verify, gamut, 3D LUT, profiles) and the sign-in LUT
   loader were removed: DMD TV Calibrate is for TVs only. The log page moved to its own file.
+- TV calibration page (version 0.1.0, step 1): TV model list with an "Other TV (generic)" mode for any brand,
+  video / PC levels, measurement window, target gamma and white, probe placement guide for TVs (contact with the
+  counterweight or tripod), full-screen TV patch window with aiming mark, initial measurement of grey scale and
+  colours against Rec.709 / D65 with charts, CSV and PDF / HTML report. Monitor-only rows (ACM, DDC/CI, ICC / MHC2
+  profiles) were removed from the Display & sensor page.

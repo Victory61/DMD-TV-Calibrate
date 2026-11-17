@@ -53,7 +53,7 @@ namespace HDRDisplayCalibrate
             if (e.Args.Length > 0 && e.Args[0] == "--esc-test")
             {
                 // live meter on page 1, then a real Esc key press from outside: how long until the job is gone
-                var mw = new MainWindow(1); mw.Show();
+                var mw = new MainWindow(2); mw.Show();
                 _ = Dispatcher.InvokeAsync(async () =>
                 {
                     await System.Threading.Tasks.Task.Delay(2500);
@@ -169,7 +169,7 @@ namespace HDRDisplayCalibrate
                 });
                 return;
             }
-            int page = e.Args.Length > 1 && e.Args[0] == "--page" && int.TryParse(e.Args[1], out var pg) ? pg : 0;
+            int page = e.Args.Length > 1 && e.Args[0] == "--page" && int.TryParse(e.Args[1], out var pg) ? pg : 1;
             new MainWindow(page).Show();
         }
     }

@@ -1,7 +1,7 @@
 // HDRDisplayCalibrate — SDR/HDR display calibration for Windows.
 // Copyright 2026 Andrii Orlov (DeadSue). Licensed under the Apache License, Version 2.0.
 // Modified 2026 by DMD61 (Victory61) for DMD TV Calibrate: the monitor calibration pages (SDR, HDR, verify, gamut,
-// 3D LUT, profiles) were removed; the TV calibration page is added in the next version.
+// 3D LUT, profiles) were removed; the TV calibration page is second and opens at start.
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -17,13 +17,14 @@ namespace HDRDisplayCalibrate
         readonly List<(string icon, string title, string tip, Func<Page> make)> _pages = new()
         {
             ("", S.T("Display & sensor", "Дисплей і датчик"), S.T("Choose the display, the colorimeter, how patches are shown, and the language.", "Вибір дисплея, колориметра, способу показу патчів і мови."), () => new DevicePage()),
+            ("\uE7F4", S.T("TV calibration", "TV calibration"), S.T("Measure the TV and get, step by step, the values to enter in its picture menu.", "Measure the TV and get, step by step, the values to enter in its picture menu."), () => new TvPage()),
             ("", S.T("Live meter", "Живий замір"), S.T("Continuous readings while you adjust the monitor's menu, or automatic adjustment over DDC/CI.", "Безперервні заміри, поки ви налаштовуєте меню монітора, або автоматичне налаштування через DDC/CI."), () => new LivePage()),
             ("", S.T("Log", "Журнал"), S.T("Everything the program and ArgyllCMS did — useful for reporting problems.", "Усе, що робили програма й ArgyllCMS, — знадобиться для повідомлень про проблеми."), () => new LogPage()),
         };
         readonly Dictionary<int, Page> _made = new();
         public int Page => Math.Max(0, Nav.SelectedIndex);
 
-        public MainWindow(int startPage = 0)
+        public MainWindow(int startPage = 1)
         {
             InitializeComponent();
             CancelButton.Content = S.T("Cancel (Esc)", "Скасувати (Esc)");
