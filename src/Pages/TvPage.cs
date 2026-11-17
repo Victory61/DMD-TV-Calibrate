@@ -68,9 +68,11 @@ namespace HDRDisplayCalibrate.Pages
             _gen.Items.Add(new ComboBoxItem { Content = T("Raspberry Pi with PGenerator — coming in a next version"), IsEnabled = false });
             _gen.SelectedIndex = 0;
             // the TV's menu controls: filled in from the TV choice (or the user's own ticks for Other TV), always visible
-            _two = Ui.Check(T("2-point white balance (gain and offset)"), cfg.Bool("tv_gen_2p", model.TwoPoint));
-            _multi = Ui.Combo(new[] { T("none"), "10", "20" }, (int)cfg.Num("tv_gen_mp", MultiIndex(model.MultiPoint)), _ => MultiChanged(), 120);
-            _cms = Ui.Check(T("Colour management (CMS)"), cfg.Bool("tv_gen_cms", model.Cms));
+            // a listed TV always starts from its own controls; the saved ticks are used for Other TV (generic) only
+            bool own = !model.Generic;
+            _two = Ui.Check(T("2-point white balance (gain and offset)"), own ? model.TwoPoint : cfg.Bool("tv_gen_2p", true));
+            _multi = Ui.Combo(new[] { T("none"), "10", "20" }, own ? MultiIndex(model.MultiPoint) : (int)cfg.Num("tv_gen_mp", 0), _ => MultiChanged(), 120);
+            _cms = Ui.Check(T("Colour management (CMS)"), own ? model.Cms : cfg.Bool("tv_gen_cms", false));
             _two.Click += (_, _) => Save(); _cms.Click += (_, _) => Save();
             _controls.Children.Add(_two);
             _controls.Children.Add(Ui.Row(Ui.Text(T("Multi-point white balance")), _multi, Ui.Caption(T("points"))));
@@ -182,11 +184,26 @@ namespace HDRDisplayCalibrate.Pages
         {
             if (_aimWin != null) { CloseAim(); return; }
             if (St.Display == null) { MessageBox.Show(T("No display found."), AppInfo.Name); return; }
+            if (!OtherScreenOk(St.Display)) return;
             _aimWin = new TvPatchWindow(St.Display, Math.Max(Area, 0.18), St.Setup.VideoRange);
+            _aimWin.Closed += (_, _) => { _aimWin = null; _aimBtn.Content = T("Show aiming mark on the TV"); };
             _aimWin.Show();
             _aimWin.Paint(0.5, 0.5, 0.5);
-            _aimWin.ShowAim(true, T("Put the probe on the orange cross, then press Hide aiming mark on the PC."));
+            _aimWin.ShowAim(true, T("Put the probe on the orange cross. Then press Esc or click to close this screen."));
             _aimBtn.Content = T("Hide aiming mark");
+        }
+
+        /// <summary>The patches cover the whole chosen screen. If that is the screen showing this program (TV not
+        /// connected or not chosen), say so and let the user decide; Esc always closes the patches.</summary>
+        bool OtherScreenOk(DisplayTarget d)
+        {
+            var w = Window.GetWindow(this);
+            if (w == null) return true;
+            var c = w.PointToScreen(new Point(w.ActualWidth / 2, w.ActualHeight / 2));   // physical pixels, like d.Bounds
+            var (x, y, bw, bh) = d.Bounds;
+            if (c.X < x || c.X >= x + bw || c.Y < y || c.Y >= y + bh) return true;
+            return MessageBox.Show(Tf("The selected display ({0}) is the one showing this program: the patches would cover this window.\n\nConnect the TV with HDMI, set Windows to Extend these displays and choose the TV in Display & sensor.\n\nContinue anyway? Press Esc to close the patches.", d.Name),
+                AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
         }
 
         void CloseAim()
@@ -201,6 +218,7 @@ namespace HDRDisplayCalibrate.Pages
             if (d == null) { MessageBox.Show(T("No display found."), AppInfo.Name); return; }
             if (Argyll.Bin == null) { MessageBox.Show(T("ArgyllCMS not found: the probe cannot be read."), AppInfo.Name); return; }
             if (d.HdrOn && MessageBox.Show(T("Windows HDR is on for this display. The SDR calibration should be done with HDR off. Continue anyway?"), AppInfo.Name, MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+            if (!OtherScreenOk(d)) return;
             CloseAim();
             if (!TvProbeGuide.Ask()) return;
 

@@ -56,6 +56,16 @@ namespace HDRDisplayCalibrate.Tv
                 SetWindowPos(h, HwndTopmost, x, y, w, hh, SWP_SHOWWINDOW);
             };
             Cursor = Cursors.None;
+            // the window covers the whole screen: Esc always gets out (during a measurement it cancels it),
+            // and with the aiming mark a mouse click closes it too
+            Loaded += (_, _) => { Activate(); Focus(); };
+            KeyDown += (_, e) =>
+            {
+                if (e.Key != Key.Escape) return;
+                e.Handled = true;
+                if (AppState.I.Job != null) AppState.I.Cancel(); else Close();
+            };
+            MouseDown += (_, _) => { if (AppState.I.Job == null && _aim.Visibility == Visibility.Visible) Close(); };
         }
 
         /// <summary>8-bit code for a stimulus 0..1: video levels 16–235 or PC levels 0–255.</summary>
@@ -126,6 +136,6 @@ namespace HDRDisplayCalibrate.Tv
             return await _spot.ReadAsync(ct);
         }
 
-        public void Dispose() { Application.Current.Dispatcher.Invoke(() => Win.Close()); _spot.Dispose(); }
+        public void Dispose() { Application.Current.Dispatcher.Invoke(() => { if (Win.IsLoaded) Win.Close(); }); _spot.Dispose(); }
     }
 }

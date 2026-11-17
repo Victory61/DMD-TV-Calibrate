@@ -14,6 +14,8 @@ namespace HDRDisplayCalibrate.Pages
         static string T(string en) => S.T(en, en);
 
         /// <summary>Shows the guide with "Probe in place — start" / "Cancel"; returns false if cancelled.</summary>
+        static TextBlock Wrap(TextBlock t) { t.TextWrapping = TextWrapping.Wrap; return t; }
+
         public static bool Ask() => new TvProbeGuide(true).ShowDialog() == true;
 
         /// <summary>Shows the guide for reading only.</summary>
@@ -31,12 +33,12 @@ namespace HDRDisplayCalibrate.Pages
 
             var cols = new Grid { Margin = new Thickness(0, 4, 0, 4) };
             cols.ColumnDefinitions.Add(new ColumnDefinition()); cols.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(20) }); cols.ColumnDefinitions.Add(new ColumnDefinition());
-            var a = Ui.Stack(Ui.H2(T("A — Contact, with the counterweight")), Numbered(
+            var a = Ui.Stack(Wrap(Ui.H2(T("A — Contact, with the counterweight"))), Numbered(
                 T("Turn the lens cover (diffuser) aside so the lens is uncovered."),
                 T("Rest the probe flat on the glass, on the orange cross in the centre of the screen."),
                 T("Hang the cable over the top edge of the TV with the counterweight behind it."),
                 T("On thin OLED panels check that the cable rests well on the edge and the probe does not slide down.")));
-            var b = Ui.Stack(Ui.H2(T("B — Tripod, without contact (recommended for OLED)")), Numbered(
+            var b = Ui.Stack(Wrap(Ui.H2(T("B — Tripod, without contact (recommended for OLED)"))), Numbered(
                 T("Screw the probe onto the tripod: the 1/4\" thread is on the rotating arm (lens cover)."),
                 T("Turn the arm so the lens is uncovered and points at the screen."),
                 T("Aim the lens at the orange cross, straight on, 2–5 cm from the glass, without touching it."),

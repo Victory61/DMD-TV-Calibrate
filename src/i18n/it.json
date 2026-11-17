@@ -577,5 +577,7 @@
  "74f1eebb": "Scegli il tuo TV. La scelta serve solo a dire al programma quali regolazioni ha il menu immagine del TV, così nei passi successivi suggerisce solo quelle; la misura è uguale per tutti i TV. Per un TV che non è nell'elenco scegli «Altro TV (generico)» e spunta le regolazioni che ha. Quando cambi la scelta, i valori consigliati qui sotto vengono impostati da soli: puoi comunque cambiarli.",
  "9165b5cb": "LG OLED e LG LCD / LED compilano le regolazioni del menu immagine LG. «Altro TV (generico)» funziona con qualsiasi marca.",
  "e9d5b448": "Regolazioni nel menu del TV",
- "2a98b655": "Le regolazioni del bilanciamento del bianco e del colore nel menu immagine del TV. Il programma suggerisce valori solo per quelle spuntate qui."
+ "2a98b655": "Le regolazioni del bilanciamento del bianco e del colore nel menu immagine del TV. Il programma suggerisce valori solo per quelle spuntate qui.",
+ "37ae06e7": "Metti la sonda sulla croce arancione. Poi premi Esc o fai clic per chiudere questa schermata.",
+ "fe26355d": "Lo schermo scelto ({0}) è quello su cui è aperto questo programma: i riquadri coprirebbero questa finestra.\n\nCollega il TV in HDMI, imposta Windows su «Estendi questi schermi» e scegli il TV in «Schermo e sonda».\n\nContinuare comunque? Premi Esc per chiudere i riquadri."
 }
