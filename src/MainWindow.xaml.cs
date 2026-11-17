@@ -18,7 +18,7 @@ namespace HDRDisplayCalibrate
         {
             ("", S.T("Display & sensor", "Дисплей і датчик"), S.T("Choose the display, the colorimeter, how patches are shown, and the language.", "Вибір дисплея, колориметра, способу показу патчів і мови."), () => new DevicePage()),
             ("\uE7F4", S.T("TV calibration", "TV calibration"), S.T("Measure the TV and get, step by step, the values to enter in its picture menu.", "Measure the TV and get, step by step, the values to enter in its picture menu."), () => new TvPage()),
-            ("", S.T("Live meter", "Живий замір"), S.T("Continuous readings while you adjust the monitor's menu, or automatic adjustment over DDC/CI.", "Безперервні заміри, поки ви налаштовуєте меню монітора, або автоматичне налаштування через DDC/CI."), () => new LivePage()),
+            ("", S.T("Live meter", "Живий замір"), S.T("Continuous readings of one patch on the TV while you change its settings.", "Continuous readings of one patch on the TV while you change its settings."), () => new LivePage()),
             ("", S.T("Log", "Журнал"), S.T("Everything the program and ArgyllCMS did — useful for reporting problems.", "Усе, що робили програма й ArgyllCMS, — знадобиться для повідомлень про проблеми."), () => new LogPage()),
         };
         readonly Dictionary<int, Page> _made = new();

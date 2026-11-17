@@ -32,6 +32,8 @@ namespace HDRDisplayCalibrate.Pages
         readonly TextBox _nits = Ui.Box("100", 80);
         readonly StackPanel _controls = new();
         readonly TextBlock _levelsHint = Ui.Caption("");
+        Border _twoCard;
+        TvResult _last;                         // the last initial measurement: its primaries guide the white balance
         readonly StackPanel _status = new();
         readonly StackPanel _results = new();
         readonly List<UIElement> _reportCards = new();
@@ -47,9 +49,8 @@ namespace HDRDisplayCalibrate.Pages
             if (!cfg.Bool("tv_levels_init", false)) { St.Setup.VideoRange = true; cfg.Set("tv_levels_init", true); St.SaveSetup(); }
 
             Body.Children.Add(Ui.Guide(T("Before you start"),
-                T("Connect the PC to the TV with HDMI and set Windows to Extend these displays. In Display & sensor choose the TV as the display and check that the probe is found."),
-                T("Connect the PC to the same TV HDMI input you use to watch films, and use the same picture mode you will use afterwards: every TV keeps its picture settings separately for each input and each picture mode, so a calibration made on another input or mode does not apply to your films."),
-                T("On the TV choose the most accurate picture mode (Cinema, Expert / ISF, Filmmaker); switch off every processing (dynamic contrast, vivid colours, sharpness, energy saving, light sensor)."),
+                T("Connect the PC with HDMI to the same TV input you use to watch films and set Windows to Extend these displays; in Display & sensor choose the TV as the display. Every TV keeps its picture settings separately for each input and each picture mode: a calibration made on another input does not apply to your films."),
+                T("On the TV choose the most accurate picture mode (Cinema, Expert / ISF, Filmmaker) and keep using it for films afterwards; switch off every processing (dynamic contrast, vivid colours, sharpness, energy saving, light sensor)."),
                 T("Windows HDR must be off for the TV: this is the SDR calibration."),
                 T("In Windows switch off Night light (and programs that change screen colours) and assign no colour profile to the TV: the program must measure the TV as it is."),
                 T("Switch the TV on at least 30 minutes before measuring. With the probe in contact soft light is enough, with no direct light on the screen; with the tripod the room must be dark.")));
@@ -109,9 +110,26 @@ namespace HDRDisplayCalibrate.Pages
                 _results));
 
             // ---- next steps
+            // ---- 4. white luminance
+            var light = new TvAdjustPanel(TvAdjustPanel.Kind.Light, 1.0, () => StepContext(false), RunJob,
+                Ui.Text(T("The TV shows white (100 %). Change the light of the panel until white reaches the target white set above.")),
+                Ui.Text(T("Control to use: OLED light on OLED TVs (on recent LG models: OLED Pixel Brightness), Backlight on LCD / LED TVs. Leave Contrast and Brightness at the values of the picture mode.")));
+            Body.Children.Add(Ui.Card(Ui.H2(T("4 · White luminance")), light.View));
+
+            // ---- 5. 2-point white balance: gain on white, then offset on dark grey
+            var gain = new TvAdjustPanel(TvAdjustPanel.Kind.Gain, 1.0, () => StepContext(true), RunJob,
+                Ui.Text(T("A · Gain (high point) — the TV shows white (100 %). The program only lowers channels, so none of them clips.")));
+            var offset = new TvAdjustPanel(TvAdjustPanel.Kind.Offset, 0.2, () => StepContext(true), RunJob,
+                Ui.Text(T("B · Offset (low point) — the TV shows a dark grey (20 %). Green stays as it is; red and blue move.")));
+            _twoCard = Ui.Card(Ui.H2(T("5 · 2-point white balance")),
+                Ui.Text(T("In the white balance menu choose the 2-point method. Gain is called High point, Contrast or Gain; offset is called Low point, Brightness, Offset or Bias. On LG: White balance, method 2 points, Point High / Low (names can vary a little with the year).")),
+                Ui.Caption(T("Do A, then B, then check A again: the two points influence each other a little.")),
+                gain.View, new Separator { Margin = new Thickness(0, 14, 0, 14) }, offset.View);
+            Body.Children.Add(_twoCard);
+            _two.Click += (_, _) => TwoCardVisibility();
+            TwoCardVisibility();
+
             Body.Children.Add(Ui.Card(Ui.H2(T("Next steps (next version)")),
-                Ui.Text(T("4 · OLED light / backlight to the target white")),
-                Ui.Text(T("5 · 2-point white balance")),
                 Ui.Text(T("6 · Multi-point white balance")),
                 Ui.Text(T("7 · Colours (CMS)")),
                 Ui.Text(T("8 · Final check and report")),
@@ -197,7 +215,7 @@ namespace HDRDisplayCalibrate.Pages
                     .ContinueWith(t => Dispatcher.Invoke(() =>
                     {
                         var list = t.Result;
-                        if (list.Count > 0) { probe.Text = "✓ " + Tf("Probe: {0}", list[Math.Clamp(St.Setup.Instrument - 1, 0, list.Count - 1)].name); probe.Foreground = Brushes.White; }
+                        if (list.Count > 0) { probe.Text = "✓ " + Tf("Probe: {0}", ProbeName(list[Math.Clamp(St.Setup.Instrument - 1, 0, list.Count - 1)].name)); probe.Foreground = Brushes.White; }
                         else { probe.Text = "✗ " + T("No probe found: plug it in (USB), then press Refresh in Display & sensor."); probe.Foreground = Ui.Bad; }
                     }));
             }
@@ -232,6 +250,39 @@ namespace HDRDisplayCalibrate.Pages
             if (c.X < x || c.X >= x + bw || c.Y < y || c.Y >= y + bh) return true;
             return MessageBox.Show(Tf("The selected display ({0}) is the one showing this program: the patches would cover this window.\n\nConnect the TV with HDMI, set Windows to Extend these displays and choose the TV in Display & sensor.\n\nContinue anyway? Press Esc to close the patches.", d.Name),
                 AppInfo.Name, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
+        }
+
+        void TwoCardVisibility() { if (_twoCard != null) _twoCard.Visibility = _two.IsChecked == true ? Visibility.Visible : Visibility.Collapsed; }
+
+        /// <summary>Checks before a guided step and what the step needs; null = do not start.</summary>
+        TvStepContext StepContext(bool balance)
+        {
+            var d = St.Display;
+            if (d == null) { MessageBox.Show(T("No display found."), AppInfo.Name); return null; }
+            if (Argyll.Bin == null) { MessageBox.Show(T("ArgyllCMS not found: the probe cannot be read."), AppInfo.Name); return null; }
+            if (balance && _last == null)
+            {
+                MessageBox.Show(T("Do the initial measurement (step 3) first: the white balance uses the colours of your TV measured there."), AppInfo.Name);
+                return null;
+            }
+            if (d.HdrOn && MessageBox.Show(T("Windows HDR is on for this display. The SDR calibration should be done with HDR off. Continue anyway?"), AppInfo.Name, MessageBoxButton.YesNo) != MessageBoxResult.Yes) return null;
+            if (!OtherScreenOk(d)) return null;
+            CloseAim();
+            Save();
+            return new TvStepContext
+            {
+                Display = d, Area = Area, Video = St.Setup.VideoRange, TargetNits = Math.Max(1, Ui.Num(_nits, 100)),
+                Basis = TvAdjust.Basis(_last), Black = TvAdjust.Black(_last),
+                Min = balance ? Model.TwoPointMin : 0, Max = balance ? Model.TwoPointMax : 100,
+                Oled = _panel.SelectedIndex == 0, Lg = !Model.Generic,
+            };
+        }
+
+        /// <summary>"hid:/4 (X-Rite i1 DisplayPro, ColorMunki Display)" → "X-Rite i1 DisplayPro, ColorMunki Display".</summary>
+        static string ProbeName(string argyll)
+        {
+            int a = argyll.IndexOf('('), b = argyll.LastIndexOf(')');
+            return a >= 0 && b > a ? argyll.Substring(a + 1, b - a - 1).Trim() : argyll;
         }
 
         void CloseAim()
@@ -286,6 +337,7 @@ namespace HDRDisplayCalibrate.Pages
 
         void ShowResults(TvResult r, string csv)
         {
+            _last = r;
             _results.Children.Clear(); _reportCards.Clear();
             string curveName = TvTargets.CurveNames[Math.Max(0, Array.IndexOf(TvTargets.Curves, r.Curve))];
 

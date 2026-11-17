@@ -33,3 +33,7 @@ Changes made by DMD61 to the original HDRDisplayCalibrate code:
   counterweight or tripod), full-screen TV patch window with aiming mark, initial measurement of grey scale and
   colours against Rec.709 / D65 with charts, CSV and PDF / HTML report. Monitor-only rows (ACM, DDC/CI, ICC / MHC2
   profiles) were removed from the Display & sensor page.
+- Guided steps 4 (white luminance) and 5 (2-point white balance: gain and offset) with continuous readings, suggested
+  menu values and learning of the size of one menu step; the live meter page rewritten for the TV patch window
+  (monitor functions DDC/CI auto OSD and room light removed); the display calibration curve is set to linear while
+  measuring and restored afterwards.

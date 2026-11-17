@@ -4,8 +4,9 @@ TV calibration assistant for **LG TVs (OLED and LCD)** and, in generic mode, **a
 **the values to enter in the TV menu** (white balance 2-point and 20-point, colour management).
 Nothing is written into the TV: you change the settings yourself with the remote, so the TV is always safe.
 
-> Status: early development (version 0.1.0). Available now: settings, probe placement and the initial measurement
-> (grey scale, gamma, colours, report). The guided adjustment steps come in the next versions.
+> Status: early development (version 0.1.0). Available now: settings, probe placement, the initial measurement
+> (grey scale, gamma, colours, report) and the first guided steps (white luminance, 2-point white balance), still to be
+> tested on a real TV. Multi-point white balance, colours (CMS) and the final check come next.
 
 Based on [HDRDisplayCalibrate](https://github.com/AndriyOrlov/HDRDisplayCalibrate) by Andrii Orlov (DeadSue),
 Apache License 2.0. See [NOTICE](NOTICE).

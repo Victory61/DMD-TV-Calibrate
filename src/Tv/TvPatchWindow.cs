@@ -122,10 +122,17 @@ namespace HDRDisplayCalibrate.Tv
         readonly SpotSession _spot;
         public readonly TvPatchWindow Win;
 
-        public TvMeter(DisplayTarget d, double area, bool video)
+        readonly int? _lutDisplay;
+
+        /// <param name="fast">Fixed short integration (live readings of bright patches); off = adaptive, better for dark greys.</param>
+        public TvMeter(DisplayTarget d, double area, bool video, bool fast = false)
         {
+            // a calibration curve loaded in the graphics card for this display would change what the TV receives:
+            // it is set to linear while measuring and put back afterwards
+            _lutDisplay = d.ArgyllNumber;
+            if (_lutDisplay is int n) try { Argyll.LutLinear(n); } catch (Exception e) { Log.Write("tv lut linear: " + e.Message); }
             Win = Application.Current.Dispatcher.Invoke(() => { var w = new TvPatchWindow(d, area, video); w.Show(); return w; });
-            _spot = new SpotSession(AppState.I.Setup, "-e");
+            _spot = new SpotSession(AppState.I.Setup, "-e", fast);
         }
 
         public async Task<V3> Read(double r, double g, double b, System.Threading.CancellationToken ct, int settleMs = 600)
@@ -136,6 +143,11 @@ namespace HDRDisplayCalibrate.Tv
             return await _spot.ReadAsync(ct);
         }
 
-        public void Dispose() { Application.Current.Dispatcher.Invoke(() => { if (Win.IsLoaded) Win.Close(); }); _spot.Dispose(); }
+        public void Dispose()
+        {
+            Application.Current.Dispatcher.Invoke(() => { if (Win.IsLoaded) Win.Close(); });
+            _spot.Dispose();
+            if (_lutDisplay is int n) try { Argyll.LoadInstalled(n); } catch (Exception e) { Log.Write("tv lut restore: " + e.Message); }
+        }
     }
 }
