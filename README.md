@@ -1,6 +1,6 @@
 # DMD TV Calibrate
 
-TV calibration assistant for **LG TVs** and, in generic mode, **any other TV**. It measures the TV with a colorimeter and tells you, step by step,
+TV calibration assistant for **LG TVs (OLED and LCD)** and, in generic mode, **any other TV**. It measures the TV with a colorimeter and tells you, step by step,
 **the values to enter in the TV menu** (white balance 2-point and 20-point, colour management).
 Nothing is written into the TV: you change the settings yourself with the remote, so the TV is always safe.
 
@@ -15,7 +15,7 @@ Apache License 2.0. See [NOTICE](NOTICE).
 | What | Details |
 |---|---|
 | PC | Windows 10 or 11, 64-bit (Windows 11 recommended). Nothing else to install. |
-| TV | An LG TV (tested on LG B6; more models are added when confirmed), or any other TV in generic mode: you tell the program which controls it has (2-point / multi-point white balance, CMS). |
+| TV | An LG TV, OLED or LCD (tested on LG OLED B6, 2016), or any other TV in generic mode: you tell the program which controls it has (2-point / multi-point white balance, CMS). |
 | Colorimeter | Any probe supported by ArgyllCMS: Calibrite Display Pro / Display Plus, X-Rite i1Display Pro, ColorMunki Display. For TVs brighter than 1000 nits in HDR: Calibrite Display Pro HL or Display Plus HL. |
 | Probe correction | The correction file for the panel type (for LG OLED: WOLED). Optional but recommended; imported from your probe's software. |
 | Pattern generator | Recommended: Raspberry Pi 4 or 5 with PGenerator (bit-accurate, needed for HDR). Alternative: the PC's HDMI output (SDR only). |
@@ -32,7 +32,7 @@ Provided "as is", without warranty of any kind.
 
 ## Italiano
 
-Assistente di calibrazione per **TV LG** e, in modalità generica, **qualsiasi altro TV**. Misura il TV con una sonda e ti dice, passo passo, **i valori da
+Assistente di calibrazione per **TV LG (OLED e LCD)** e, in modalità generica, **qualsiasi altro TV**. Misura il TV con una sonda e ti dice, passo passo, **i valori da
 inserire nel menu del TV** (bilanciamento del bianco a 2 e 20 punti, gestione del colore). Nel TV non viene
 scritto niente: le impostazioni le cambi tu con il telecomando, quindi il TV è sempre al sicuro.
 

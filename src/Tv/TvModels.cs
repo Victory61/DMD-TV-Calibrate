@@ -32,14 +32,19 @@ namespace HDRDisplayCalibrate.Tv
     {
         public const string GenericId = "generic";
 
+        // One entry per group of TVs whose picture-menu controls differ (brand / panel type), not one per model:
+        // a new entry is added only when a real difference in controls or ranges is confirmed.
+        const string LgNote = "2-point and 20-point white balance, colour management. Ranges to be confirmed on the TV.";
+
+        static TvModel Lg(string id, string name, bool oled) => new()
+        {
+            Id = id, Name = name, Oled = oled, TwoPoint = true, MultiPoint = 20, MultiPointLuminance = false, Cms = true, Note = LgNote,
+        };
+
         public static readonly List<TvModel> All = new()
         {
-            new TvModel
-            {
-                Id = "lg-oled-2016", Name = "LG OLED 2016 (B6, C6, E6, G6)", Oled = true,
-                TwoPoint = true, MultiPoint = 20, MultiPointLuminance = false, Cms = true,
-                Note = "2-point and 20-point white balance, colour management. Ranges to be confirmed on the TV.",
-            },
+            Lg("lg-oled", "LG OLED", true),
+            Lg("lg-lcd", "LG LCD / LED", false),
             new TvModel
             {
                 Id = GenericId, Name = "Other TV (generic)", Generic = true,
