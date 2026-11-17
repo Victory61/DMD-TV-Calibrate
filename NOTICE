@@ -1,0 +1,28 @@
+DMD TV Calibrate
+Copyright 2026 DMD61 (Victory61)
+https://github.com/Victory61/DMD-TV-Calibrate
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Based on HDRDisplayCalibrate by Andrii Orlov (DeadSue)
+Copyright 2026 Andrii Orlov (DeadSue)
+https://github.com/AndriyOrlov/HDRDisplayCalibrate · https://deadsue.art
+Licensed under the Apache License, Version 2.0.
+The original NOTICE asks that any redistribution, fork or derivative work keeps this credit:
+"Based on HDRDisplayCalibrate by Andrii Orlov (DeadSue)".
+
+Third-party software used at runtime:
+- ArgyllCMS by Graeme W. Gill (AGPL-3.0), invoked as external command-line tools.
+  When ArgyllCMS is distributed together with this program, its licence text is included and its
+  source code is available from https://www.argyllcms.com/ (same version as the one distributed).
+- .NET / WPF by Microsoft and the .NET Foundation (MIT).
+
+Changes made by DMD61 to the original HDRDisplayCalibrate code:
+- Guided sensor dialogs in the HDR wizard and in Verify & report.
+- The ArgyllCMS bundled next to the exe is always used first; the bin folder is read-only when it is bundled.
+- Italian translation of the interface.
+- HDR wizard: opens on HDR or SDR calibration according to the monitor and switches Windows HDR on/off by itself;
+  "Before you start" box; numbered steps in the profile prompt; final profile name; closing window; report export to
+  PDF or HTML saved automatically; HDR colour check (24 colours, dE2000); work folder emptied at the end.
+- Version 0.1.0 of DMD TV Calibrate: new program name, executable (DMDTVCalibrate.exe), icon, and its own settings
+  and documents folders (DMDTVCalibrate), so it can be installed side by side with HDRDisplayCalibrate.

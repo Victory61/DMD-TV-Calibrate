@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>DMDTVCalibrate</AssemblyName>
+    <RootNamespace>HDRDisplayCalibrate</RootNamespace>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <NoWarn>WPF0001;CA1416</NoWarn>
+    <Version>0.1.0</Version>
+    <Authors>DMD61 (Victory61)</Authors>
+    <Copyright>Copyright 2026 DMD61. Based on HDRDisplayCalibrate, Copyright 2026 Andrii Orlov (DeadSue)</Copyright>
+    <Product>DMD TV Calibrate</Product>
+    <Description>TV calibration assistant for LG TVs: measures with a colorimeter and tells you the values to enter in the TV menu (ArgyllCMS backend)</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="app.ico" />
+    <EmbeddedResource Include="i18n\*.json" LogicalName="HDRDisplayCalibrate.i18n.%(Filename).json" />
+  </ItemGroup>
+</Project>
