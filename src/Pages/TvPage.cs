@@ -48,8 +48,10 @@ namespace HDRDisplayCalibrate.Pages
 
             Body.Children.Add(Ui.Guide(T("Before you start"),
                 T("Connect the PC to the TV with HDMI and set Windows to Extend these displays. In Display & sensor choose the TV as the display and check that the probe is found."),
-                T("On the TV choose the PC input and the most accurate picture mode (Cinema, Expert / ISF, Filmmaker); switch off every processing (dynamic contrast, vivid colours, sharpness, energy saving, light sensor)."),
+                T("Connect the PC to the same TV HDMI input you use to watch films, and use the same picture mode you will use afterwards: every TV keeps its picture settings separately for each input and each picture mode, so a calibration made on another input or mode does not apply to your films."),
+                T("On the TV choose the most accurate picture mode (Cinema, Expert / ISF, Filmmaker); switch off every processing (dynamic contrast, vivid colours, sharpness, energy saving, light sensor)."),
                 T("Windows HDR must be off for the TV: this is the SDR calibration."),
+                T("In Windows switch off Night light (and programs that change screen colours) and assign no colour profile to the TV: the program must measure the TV as it is."),
                 T("Switch the TV on at least 30 minutes before measuring. With the probe in contact soft light is enough, with no direct light on the screen; with the tripod the room must be dark.")));
             Body.Children.Add(Ui.Card(Ui.H2(T("Check")), _status));
 
@@ -180,6 +182,25 @@ namespace HDRDisplayCalibrate.Pages
                 _status.Children.Add(Ui.Row(Ui.Btn(T("Turn HDR off"), async () => { Displays.SetHdr(d, false); await Task.Delay(6000); St.RefreshDisplays(); OnShow(); }, false, "")));
             }
             else if (d != null) _status.Children.Add(Line("✓ " + T("Windows HDR is off (SDR)."), Brushes.White));
+            if (d != null && !d.HdrOn)
+            {
+                string prof = null;
+                try { prof = ColorProfiles.Default(d, false); } catch { }
+                if (prof != null) _status.Children.Add(Line("⚠ " + Tf("Windows applies a colour profile to this display ({0}). Remove it in Colour management, so that the TV is measured as it is.", prof), Ui.Warm));
+            }
+            if (Argyll.Bin != null && St.Job == null)   // not while a measurement is using the probe
+            {
+                // looking for the probe runs ArgyllCMS for a moment: done in the background, the line is filled in when ready
+                var probe = Line("… " + T("Looking for the probe…"), Ui.Muted);
+                _status.Children.Add(probe);
+                _ = Task.Run(() => { try { return Argyll.Instruments(); } catch { return new List<(int n, string name)>(); } })
+                    .ContinueWith(t => Dispatcher.Invoke(() =>
+                    {
+                        var list = t.Result;
+                        if (list.Count > 0) { probe.Text = "✓ " + Tf("Probe: {0}", list[Math.Clamp(St.Setup.Instrument - 1, 0, list.Count - 1)].name); probe.Foreground = Brushes.White; }
+                        else { probe.Text = "✗ " + T("No probe found: plug it in (USB), then press Refresh in Display & sensor."); probe.Foreground = Ui.Bad; }
+                    }));
+            }
             string levels = St.Setup.VideoRange
                 ? T("Video levels 16–235: set the TV black level to Low / Limited.")
                 : T("PC levels 0–255: set the TV black level to High / Full.");
@@ -286,7 +307,11 @@ namespace HDRDisplayCalibrate.Pages
 
             // RGB balance and gamma
             var greysUsed = r.Greys.Where(g => g.Level >= 0.1).ToList();
-            var bal = new LineChart { XLabel = T("grey level, %"), YLabel = T("RGB balance, %"), XMin = 0, XMax = 100, YMin = 80, YMax = 120, Height = 260 };
+            // the scale is 80–120 % and widens when a line goes outside it, so all three lines are always drawn
+            var balVals = greysUsed.SelectMany(g => new[] { g.R, g.G, g.B }).Where(v => !double.IsNaN(v) && !double.IsInfinity(v)).ToList();
+            double bMin = balVals.Count > 0 ? Math.Min(80, Math.Floor((balVals.Min() - 5) / 10) * 10) : 80;
+            double bMax = balVals.Count > 0 ? Math.Max(120, Math.Ceiling((balVals.Max() + 5) / 10) * 10) : 120;
+            var bal = new LineChart { XLabel = T("grey level, %"), YLabel = T("RGB balance, %"), XMin = 0, XMax = 100, YMin = Math.Max(0, bMin), YMax = Math.Min(300, bMax), Height = 260 };
             bal.Data.Add(new LineChart.Series(T("target"), new List<(double, double)> { (0, 100), (100, 100) }, Ui.Muted, true));
             bal.Data.Add(new LineChart.Series(T("red"), greysUsed.Select(g => (g.Level * 100, g.R)).ToList(), RedB, false, true));
             bal.Data.Add(new LineChart.Series(T("green"), greysUsed.Select(g => (g.Level * 100, g.G)).ToList(), GreenB, false, true));

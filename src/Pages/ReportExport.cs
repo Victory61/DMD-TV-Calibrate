@@ -1,6 +1,7 @@
 // HDRDisplayCalibrate — SDR/HDR display calibration for Windows.
 // Copyright 2026 Andrii Orlov (DeadSue). Licensed under the Apache License, Version 2.0.
-// Added 2026 by DMD61 (Victory61): "Export report" — the result cards (values, tables and charts) saved as PDF or HTML.
+// Added 2026 by DMD61 (Victory61): "Export report" — the result cards (values, tables and charts) saved as PDF or HTML;
+// in the PDF the title is on the same page as the first card.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -125,9 +126,28 @@ namespace HDRDisplayCalibrate.Pages
             File.WriteAllText(file, sb.ToString(), new UTF8Encoding(false));
         }
 
+        /// <summary>Two pictures one under the other (same width in pixels, the wider one sets it), on the report background.</summary>
+        static BitmapSource Join(BitmapSource top, BitmapSource bottom)
+        {
+            int w = Math.Max(top.PixelWidth, bottom.PixelWidth), h = top.PixelHeight + bottom.PixelHeight;
+            var dv = new DrawingVisual();
+            using (var dc = dv.RenderOpen())
+            {
+                dc.DrawRectangle(new SolidColorBrush(Bg), null, new Rect(0, 0, w, h));
+                dc.DrawImage(top, new Rect(0, 0, top.PixelWidth, top.PixelHeight));
+                dc.DrawImage(bottom, new Rect(0, top.PixelHeight, bottom.PixelWidth, bottom.PixelHeight));
+            }
+            var rtb = new RenderTargetBitmap(w, h, 96, 96, PixelFormats.Pbgra32);
+            rtb.Render(dv);
+            rtb.Freeze();
+            return rtb;
+        }
+
         /// <summary>Minimal PDF 1.4: one page per picture, page width 595 pt (A4), height following the picture.</summary>
         static void WritePdf(string file, List<BitmapSource> images)
         {
+            // the title picture is short: put it on the same page as the first card instead of a page of its own
+            if (images.Count > 1) images = new List<BitmapSource> { Join(images[0], images[1]) }.Concat(images.Skip(2)).ToList();
             using var fs = File.Create(file);
             var offsets = new List<long>();
             void Raw(string s) { var b = Encoding.ASCII.GetBytes(s); fs.Write(b, 0, b.Length); }

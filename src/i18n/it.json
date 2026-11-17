@@ -585,5 +585,12 @@
  "cd0ebd10": "5 · Bilanciamento del bianco a 2 punti",
  "4da3a3b0": "6 · Bilanciamento del bianco multipunto",
  "feaabc6e": "7 · Colori (CMS)",
- "3062a3bf": "8 · Verifica finale e report"
+ "3062a3bf": "8 · Verifica finale e report",
+ "acae3944": "Windows applica un profilo colore a questo schermo ({0}). Rimuovilo in Gestione colori, così il TV viene misurato così com'è.",
+ "330b38ae": "Ricerca della sonda…",
+ "85047acb": "Sonda: {0}",
+ "3704dcac": "Nessuna sonda trovata: collegala (USB), poi premi «Aggiorna» in «Schermo e sonda».",
+ "17f79174": "In Windows spegni la Luce notturna (e i programmi che cambiano i colori dello schermo) e non assegnare nessun profilo colore al TV: il programma deve misurare il TV così com'è.",
+ "4f01afee": "Collega il PC allo stesso ingresso HDMI del TV che usi per guardare i film e usa la stessa modalità immagine che userai dopo: ogni TV memorizza le impostazioni dell'immagine separatamente per ogni ingresso e per ogni modalità, quindi una calibrazione fatta su un altro ingresso o un'altra modalità non vale per i tuoi film.",
+ "22fb782c": "Sul TV scegli la modalità immagine più fedele (Cinema, Esperto / ISF, Filmmaker); spegni tutte le elaborazioni (contrasto dinamico, colori vivaci, nitidezza, risparmio energetico, sensore di luce)."
 }
