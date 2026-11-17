@@ -572,5 +572,10 @@
  "ff6912e2": "Magenta",
  "3526f607": "Giallo",
  "4e889014": "Misura il TV e ottieni, passo passo, i valori da inserire nel suo menu immagine.",
- "b3e60d7b": "Lo schermo da calibrare: scegli il TV collegato in HDMI. I riquadri di prova vengono mostrati su questo schermo."
+ "b3e60d7b": "Lo schermo da calibrare: scegli il TV collegato in HDMI. I riquadri di prova vengono mostrati su questo schermo.",
+ "186b33a2": "Compilato in base alla scelta del TV. Togli la spunta a una regolazione che il menu immagine del tuo TV non ha.",
+ "74f1eebb": "Scegli il tuo TV. La scelta serve solo a dire al programma quali regolazioni ha il menu immagine del TV, così nei passi successivi suggerisce solo quelle; la misura è uguale per tutti i TV. Per un TV che non è nell'elenco scegli «Altro TV (generico)» e spunta le regolazioni che ha. Quando cambi la scelta, i valori consigliati qui sotto vengono impostati da soli: puoi comunque cambiarli.",
+ "9165b5cb": "LG OLED e LG LCD / LED compilano le regolazioni del menu immagine LG. «Altro TV (generico)» funziona con qualsiasi marca.",
+ "e9d5b448": "Regolazioni nel menu del TV",
+ "2a98b655": "Le regolazioni del bilanciamento del bianco e del colore nel menu immagine del TV. Il programma suggerisce valori solo per quelle spuntate qui."
 }

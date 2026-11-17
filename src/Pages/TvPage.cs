@@ -30,7 +30,7 @@ namespace HDRDisplayCalibrate.Pages
         readonly ComboBox _model, _panel, _levels, _window, _curve, _greys, _gen, _multi;
         readonly CheckBox _two, _cms;
         readonly TextBox _nits = Ui.Box("100", 80);
-        readonly StackPanel _generic = new() { Margin = new Thickness(0, 4, 0, 4) };
+        readonly StackPanel _controls = new();
         readonly StackPanel _status = new();
         readonly StackPanel _results = new();
         readonly List<UIElement> _reportCards = new();
@@ -54,7 +54,7 @@ namespace HDRDisplayCalibrate.Pages
 
             // ---- 1. settings
             var model = TvModels.Find(cfg.Str("tv_model", TvModels.All[0].Id));
-            _model = Ui.Combo(TvModels.All.Select(m => m.Generic ? T(m.Name) : m.Name), TvModels.All.IndexOf(model), _ => { ModelChanged(); Save(); }, 380);
+            _model = Ui.Combo(TvModels.All.Select(m => m.Generic ? T(m.Name) : m.Name), TvModels.All.IndexOf(model), _ => ModelChanged(), 380);
             _panel = Ui.Combo(new[] { "OLED", T("LCD / LED") }, (int)cfg.Num("tv_panel", model.Oled ? 0 : 1), _ => Save(), 380);
             _levels = Ui.Combo(new[] { T("Video levels 16–235 (TV, recommended)"), T("PC levels 0–255") }, St.Setup.VideoRange ? 0 : 1,
                 i => { if (_loading) return; St.Setup.VideoRange = i == 0; St.SaveSetup(); OnShow(); }, 380);
@@ -67,26 +67,27 @@ namespace HDRDisplayCalibrate.Pages
             _gen.Items.Add(T("PC — HDMI output"));
             _gen.Items.Add(new ComboBoxItem { Content = T("Raspberry Pi with PGenerator — coming in a next version"), IsEnabled = false });
             _gen.SelectedIndex = 0;
-            _two = Ui.Check(T("2-point white balance (gain and offset)"), cfg.Bool("tv_gen_2p", true));
-            _multi = Ui.Combo(new[] { T("none"), "10", "20" }, (int)cfg.Num("tv_gen_mp", 0), _ => Save(), 120);
-            _cms = Ui.Check(T("Colour management (CMS)"), cfg.Bool("tv_gen_cms", false));
+            // the TV's menu controls: filled in from the TV choice (or the user's own ticks for Other TV), always visible
+            _two = Ui.Check(T("2-point white balance (gain and offset)"), cfg.Bool("tv_gen_2p", model.TwoPoint));
+            _multi = Ui.Combo(new[] { T("none"), "10", "20" }, (int)cfg.Num("tv_gen_mp", MultiIndex(model.MultiPoint)), _ => MultiChanged(), 120);
+            _cms = Ui.Check(T("Colour management (CMS)"), cfg.Bool("tv_gen_cms", model.Cms));
             _two.Click += (_, _) => Save(); _cms.Click += (_, _) => Save();
-            _generic.Children.Add(Ui.Caption(T("Tell the program which controls your TV has in the picture menu (white balance / colour settings).")));
-            _generic.Children.Add(_two);
-            _generic.Children.Add(Ui.Field(T("Multi-point white balance"), _multi, T("points"), 220));
-            _generic.Children.Add(_cms);
+            _controls.Children.Add(_two);
+            _controls.Children.Add(Ui.Row(Ui.Text(T("Multi-point white balance")), _multi, Ui.Caption(T("points"))));
+            _controls.Children.Add(_cms);
+            _controls.Children.Add(Ui.Caption(T("Filled in from the TV choice. Untick a control your TV does not have in its picture menu.")));
 
             Body.Children.Add(Ui.Card(Ui.H2(T("1 · Settings")),
-                Ui.Field(T("TV"), _model, tip: T("Choose your TV. With Other TV (generic) the program works with any brand: you tell it which controls the TV has.")),
-                _generic,
+                Ui.Text(T("Choose your TV. The choice only tells the program which controls the TV picture menu has, so that in the next steps it suggests only those; the measurement is the same for every TV. For a TV not in the list choose Other TV (generic) and tick the controls it has. When you change the choice, the recommended values below are set for you: you can still change them.")),
+                Ui.Field(T("TV"), _model, tip: T("LG OLED and LG LCD / LED fill in the controls of the LG picture menu. Other TV (generic) works with any brand.")),
+                Ui.Field(T("Controls in the TV menu"), _controls, tip: T("The white balance and colour settings of the TV picture menu. The program suggests values only for the controls ticked here.")),
                 Ui.Field(T("Panel"), _panel, tip: T("OLED or LCD / LED. OLED and sets with local dimming are measured with a small window (10 %).")),
                 Ui.Field(T("Signal levels"), _levels, tip: T("Video levels 16–235: set the TV black level to Low / Limited. PC levels 0–255: set it to High / Full. They must match, otherwise black and white are wrong.")),
                 Ui.Field(T("Measurement window"), _window, T("share of the screen"), tip: T("Size of the measured patch. 10 % for OLED and local dimming (the TV does not dim it); 18–25 % or full screen for other LCDs.")),
                 Ui.Field(T("Target gamma"), _curve, tip: T("BT.1886 or 2.4 for a dark room; 2.2 for a lit room.")),
                 Ui.Field(T("Target white"), Ui.Row(_nits, Ui.Text("cd/m²")), T("about 100 in a dark room"), tip: T("Luminance of 100 % white you will set with OLED light / backlight in the next step.")),
                 Ui.Field(T("Grey scale"), _greys, tip: T("Number of grey levels measured. 21 points match the 20-point white balance of many TVs.")),
-                Ui.Field(T("Pattern generator"), _gen, tip: T("Who shows the patches on the TV. For now the PC through HDMI; the Raspberry Pi (more precise, needed for HDR) will be added.")),
-                Ui.Caption(model.Generic ? "" : T(model.Note))));
+                Ui.Field(T("Pattern generator"), _gen, tip: T("Who shows the patches on the TV. For now the PC through HDMI; the Raspberry Pi (more precise, needed for HDR) will be added."))));
 
             // ---- 2. probe
             _aimBtn = Ui.Btn(T("Show aiming mark on the TV"), ToggleAim, false, "", tip: T("Shows a grey patch with an orange cross in the centre of the TV, to place the probe."));
@@ -107,7 +108,6 @@ namespace HDRDisplayCalibrate.Pages
                 Ui.Text(T("4 · OLED light / backlight to the target white   ·   5 · 2-point white balance   ·   6 · Multi-point white balance   ·   7 · Colours (CMS)   ·   8 · Final check and report")),
                 Ui.Caption(T("For each control the program will tell you the value to set in the TV menu, then measure again."))));
 
-            ModelChanged();
             _loading = false;
         }
 
@@ -115,7 +115,37 @@ namespace HDRDisplayCalibrate.Pages
         double Area => TvTargets.Windows[Math.Max(0, _window.SelectedIndex)];
         string Curve => TvTargets.Curves[Math.Max(0, _curve.SelectedIndex)];
 
-        void ModelChanged() => _generic.Visibility = Model.Generic ? Visibility.Visible : Visibility.Collapsed;
+        static int MultiIndex(int points) => points >= 20 ? 2 : points >= 10 ? 1 : 0;
+
+        /// <summary>A new TV choice fills in its menu controls and the recommended panel, window and grey scale.
+        /// Other TV (generic) keeps what the user ticked and chose.</summary>
+        void ModelChanged()
+        {
+            if (_loading) return;
+            var m = Model;
+            _loading = true;
+            if (!m.Generic)
+            {
+                _two.IsChecked = m.TwoPoint;
+                _multi.SelectedIndex = MultiIndex(m.MultiPoint);
+                _cms.IsChecked = m.Cms;
+                _panel.SelectedIndex = m.Oled ? 0 : 1;
+                _window.SelectedIndex = m.Oled ? 0 : 1;        // 10 % for OLED, 18 % for LCD (10 % if it has local dimming)
+                _greys.SelectedIndex = m.MultiPoint >= 20 ? 1 : 0;
+            }
+            _loading = false;
+            Save();
+        }
+
+        /// <summary>20-point white balance is checked with 21 grey levels, the others with 11.</summary>
+        void MultiChanged()
+        {
+            if (_loading) return;
+            _loading = true;
+            _greys.SelectedIndex = _multi.SelectedIndex == 2 ? 1 : 0;
+            _loading = false;
+            Save();
+        }
 
         void Save()
         {
