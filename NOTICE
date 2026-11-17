@@ -26,3 +26,5 @@ Changes made by DMD61 to the original HDRDisplayCalibrate code:
   PDF or HTML saved automatically; HDR colour check (24 colours, dE2000); work folder emptied at the end.
 - Version 0.1.0 of DMD TV Calibrate: new program name, executable (DMDTVCalibrate.exe), icon, and its own settings
   and documents folders (DMDTVCalibrate), so it can be installed side by side with HDRDisplayCalibrate.
+- The monitor calibration pages (SDR and HDR calibration, verify, gamut, 3D LUT, profiles) and the sign-in LUT
+  loader were removed: DMD TV Calibrate is for TVs only. The log page moved to its own file.

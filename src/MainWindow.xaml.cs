@@ -1,7 +1,7 @@
 // HDRDisplayCalibrate — SDR/HDR display calibration for Windows.
 // Copyright 2026 Andrii Orlov (DeadSue). Licensed under the Apache License, Version 2.0.
-// Modified 2026 by DMD61 (Victory61): opens on HDR calibration for an HDR monitor and on SDR calibration otherwise;
-// HDR calibration is greyed out for a monitor without HDR.
+// Modified 2026 by DMD61 (Victory61) for DMD TV Calibrate: the monitor calibration pages (SDR, HDR, verify, gamut,
+// 3D LUT, profiles) were removed; the TV calibration page is added in the next version.
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -18,21 +18,12 @@ namespace HDRDisplayCalibrate
         {
             ("", S.T("Display & sensor", "Дисплей і датчик"), S.T("Choose the display, the colorimeter, how patches are shown, and the language.", "Вибір дисплея, колориметра, способу показу патчів і мови."), () => new DevicePage()),
             ("", S.T("Live meter", "Живий замір"), S.T("Continuous readings while you adjust the monitor's menu, or automatic adjustment over DDC/CI.", "Безперервні заміри, поки ви налаштовуєте меню монітора, або автоматичне налаштування через DDC/CI."), () => new LivePage()),
-            ("", S.T("SDR calibration", "SDR калібрування"), S.T("Grey scale, white point and an ICC profile for normal (SDR) mode.", "Сіра шкала, точка білого та ICC-профіль для звичайного (SDR) режиму."), () => new SdrPage()),
-            ("", S.T("HDR calibration", "HDR калібрування"), S.T("Step-by-step Windows HDR calibration into a native MHC2 profile.", "Покрокове калібрування Windows HDR у рідний MHC2-профіль."), () => new HdrPage()),
-            ("", S.T("Verify & report", "Перевірка і звіт"), S.T("Check how accurate the display is now: ΔE, gamma, contrast.", "Перевірка, наскільки точний дисплей зараз: ΔE, гамма, контраст."), () => new VerifyPage()),
-            ("", S.T("Gamut", "Гамут"), S.T("Which colour standards the display can show, in 2D and 3D.", "Які колірні стандарти дисплей може показати — у 2D і 3D."), () => new GamutPage()),
-            ("", S.T("3D LUT", "3D-LUT"), S.T("Export the calibration as a 3D LUT for madVR, Resolve, OBS or ReShade.", "Експорт калібрування як 3D-LUT для madVR, Resolve, OBS чи ReShade."), () => new LutPage()),
-            ("", S.T("Profiles", "Профілі"), S.T("The display's SDR and HDR profiles, video card LUT tools.", "SDR і HDR профілі дисплея, інструменти LUT відеокарти."), () => new ProfilesPage()),
             ("", S.T("Log", "Журнал"), S.T("Everything the program and ArgyllCMS did — useful for reporting problems.", "Усе, що робили програма й ArgyllCMS, — знадобиться для повідомлень про проблеми."), () => new LogPage()),
         };
         readonly Dictionary<int, Page> _made = new();
         public int Page => Math.Max(0, Nav.SelectedIndex);
 
-        const int SdrPageIndex = 2, HdrPageIndex = 3;
-
-        /// <summary>startPage −1: choose by the monitor (HDR calibration if it supports HDR, SDR calibration if not).</summary>
-        public MainWindow(int startPage = -1)
+        public MainWindow(int startPage = 0)
         {
             InitializeComponent();
             CancelButton.Content = S.T("Cancel (Esc)", "Скасувати (Esc)");
@@ -78,14 +69,6 @@ namespace HDRDisplayCalibrate
                 if (AppState.I.Job == null) StatusBar.IsIndeterminate = false;
                 var d = AppState.I.Display;
                 TitleDisplay.Text = d == null ? "" : $"· {d.Name}{(d.HdrOn ? " · HDR" : "")}";
-                // a monitor without HDR cannot be calibrated in HDR
-                if (Nav.Items.Count > HdrPageIndex && Nav.Items[HdrPageIndex] is ListBoxItem hi)
-                {
-                    bool can = d == null || d.HdrSupported;
-                    hi.IsEnabled = can;
-                    Ui.Tip(hi, can ? _pages[HdrPageIndex].tip : S.T("This monitor does not support HDR.", "Цей монітор не підтримує HDR."));
-                    if (!can && Nav.SelectedIndex == HdrPageIndex) Nav.SelectedIndex = SdrPageIndex;
-                }
             });
             AppState.I.Status += onStatus; AppState.I.Changed += onChanged;
             Closed += (_, _) =>          // a window replaced by a language reload stops listening
@@ -100,8 +83,6 @@ namespace HDRDisplayCalibrate
                 if (Core.Argyll.Bin == null)
                     MessageBox.Show(S.T("ArgyllCMS was not found. Install ArgyllCMS (or DisplayCAL) and set its bin folder on the first page.",
                                         "Не знайдено ArgyllCMS. Встановіть ArgyllCMS (або DisplayCAL) і вкажіть папку bin на першій сторінці."), Core.AppInfo.Name);
-                var d0 = AppState.I.Display;
-                if (startPage < 0) startPage = d0 == null ? 0 : d0.HdrSupported ? HdrPageIndex : SdrPageIndex;
                 Nav.SelectedIndex = Math.Clamp(startPage, 0, _pages.Count - 1);
             };
             Closing += (_, _) => AppState.I.Cancel();

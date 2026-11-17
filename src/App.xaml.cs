@@ -1,4 +1,4 @@
-// HDRDisplayCalibrate — SDR/HDR display calibration for Windows.
+// DMD TV Calibrate — based on HDRDisplayCalibrate (SDR/HDR display calibration for Windows).
 // Copyright 2026 Andrii Orlov (DeadSue). Licensed under the Apache License, Version 2.0.
 using System;
 using System.Linq;
@@ -26,24 +26,7 @@ namespace HDRDisplayCalibrate
         {
             base.OnStartup(e);
             S.Init(Core.Settings.Load().Str("lang", "auto"));
-            if (e.Args.Length > 0 && e.Args[0] == "--load-luts")
-            {
-                // sign-in loader: put each display's calibration into the video card and exit
-                try { Core.Argyll.Find(Core.Settings.Load().Str("argyll_bin")); if (Core.Argyll.Bin != null) Core.LutLoader.LoadAll(); } catch (Exception ex) { Core.Log.Write("loader: " + ex.Message); }
-                Shutdown(); return;
-            }
             if (e.Args.Length > 0 && e.Args[0] == "--selftest") { SelfTest.Run(e.Args.Skip(1).ToArray()); Shutdown(); return; }
-            if (e.Args.Length > 1 && e.Args[0] == "--render3d")
-            {
-                var disp = new Core.Gamut.Space("ASUS", (0.6776, 0.3163), (0.2824, 0.6460), (0.1559, 0.0673));
-                var v = new Pages.Gamut3D(disp, new[] { (Core.Gamut.References[0], System.Windows.Media.Colors.Gray), (Core.Gamut.References[2], System.Windows.Media.Color.FromRgb(0xF9, 0x73, 0x16)), (Core.Gamut.References[3], System.Windows.Media.Color.FromRgb(0x22, 0xD3, 0xEE)) });
-                var host = new System.Windows.Controls.Border { Width = 900, Height = 460, Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(32, 32, 36)), Child = v };
-                host.Measure(new Size(900, 460)); host.Arrange(new Rect(0, 0, 900, 460)); host.UpdateLayout();
-                var rtb = new System.Windows.Media.Imaging.RenderTargetBitmap(900, 460, 96, 96, System.Windows.Media.PixelFormats.Pbgra32); rtb.Render(host);
-                var enc = new System.Windows.Media.Imaging.PngBitmapEncoder(); enc.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(rtb));
-                using (var fs = System.IO.File.Create(e.Args[1])) enc.Save(fs);
-                Shutdown(); return;
-            }
             if (e.Args.Length > 0 && e.Args[0] == "--spot-test")
             {
                 ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -63,29 +46,6 @@ namespace HDRDisplayCalibrate
                     }
                     catch (System.Exception ex) { sb.AppendLine(ex.ToString()); }
                     System.IO.File.WriteAllText(System.IO.Path.Combine(Core.Paths.Docs, "spot_test.txt"), sb.ToString());
-                    Shutdown();
-                });
-                return;
-            }
-            if (e.Args.Length > 0 && e.Args[0] == "--wheel-test")
-            {
-                // a wheel turn over the 3D gamut zooms the camera and does not scroll the page
-                var mw = new MainWindow(5); mw.Show();
-                _ = Dispatcher.InvokeAsync(async () =>
-                {
-                    await System.Threading.Tasks.Task.Delay(1500);
-                    static System.Collections.Generic.IEnumerable<DependencyObject> All(DependencyObject d)
-                    {
-                        for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(d); i++)
-                        { var c = System.Windows.Media.VisualTreeHelper.GetChild(d, i); yield return c; foreach (var x in All(c)) yield return x; }
-                    }
-                    var g = All(mw).OfType<Pages.Gamut3D>().First();
-                    var sv = All(mw).OfType<System.Windows.Controls.ScrollViewer>().First(x => x.ScrollableHeight > 0);
-                    var f = typeof(Pages.Gamut3D).GetField("_dist", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    double d0 = (double)f.GetValue(g), o0 = sv.VerticalOffset;
-                    g.RaiseEvent(new System.Windows.Input.MouseWheelEventArgs(System.Windows.Input.Mouse.PrimaryDevice, 0, -120) { RoutedEvent = UIElement.MouseWheelEvent });
-                    await System.Threading.Tasks.Task.Delay(200);
-                    System.IO.File.WriteAllText(System.IO.Path.Combine(Core.Paths.Docs, "wheel_test.txt"), $"camera {d0} -> {f.GetValue(g)}, page offset {o0} -> {sv.VerticalOffset}");
                     Shutdown();
                 });
                 return;
@@ -209,7 +169,7 @@ namespace HDRDisplayCalibrate
                 });
                 return;
             }
-            int page = e.Args.Length > 1 && e.Args[0] == "--page" && int.TryParse(e.Args[1], out var pg) ? pg : -1;   // −1: by the monitor (DMD61)
+            int page = e.Args.Length > 1 && e.Args[0] == "--page" && int.TryParse(e.Args[1], out var pg) ? pg : 0;
             new MainWindow(page).Show();
         }
     }
